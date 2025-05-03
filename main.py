@@ -9,6 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 df = pd.read_csv("seizou-data.csv")
+print(df.head())
 
 def normalize(text):
     return re.sub(r"\s+", "", str(text)).upper()
