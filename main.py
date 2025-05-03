@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import json
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -21,27 +21,19 @@ def search_order():
     keyword = request.args.get("keyword", "")
     keyword_norm = normalize(keyword)
 
-mask = df["受注No"].str.contains(keyword_norm) | df["製品名"].str.contains(keyword_norm)
-result = df[mask]
+    mask = df["受注No"].str.contains(keyword_norm) | df["製品名"].str.contains(keyword_norm)
+    result = df[mask]
 
-if result.empty:
+    if result.empty:
         return jsonify({"result": "ごめんね、まつかりん。該当データは見つからなかったよ。"})
 
-row = result.iloc[0]
-output = {df.columns[i]: str(row[i]) for i in range(18)}
-# 明示的に charset を指定
-response = make_response(jsonify({"result": output}))
-response.headers["Content-Type"] = "application/json; charset=utf-8"
-return response
+    row = result.iloc[0]
+    output = {df.columns[i]: str(row[i]) for i in range(18)}
 
-return jsonify(result=
-output)
-
-import os
+    response = make_response(jsonify({"result": output}))
+    response.headers["Content-Type"] = "application/json; charset=utf-8"
+    return response
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 3000))
     app.run(host="0.0.0.0", port=port)
-
-
-
