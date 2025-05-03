@@ -29,11 +29,13 @@ def search_order():
 
     row = result.iloc[0]
     output = {df.columns[i]: str(row[i]) for i in range(18)}
-    return jsonify({"result": json.dumps(output, ensure_ascii=False)})
+    return jsonify({"result": output})
 
 import os
 
 if __name__ == "__main__":
-app.run()
+    port = int(os.environ.get("PORT", 3000))
+    app.run(host="0.0.0.0", port=port)
+
 
 
