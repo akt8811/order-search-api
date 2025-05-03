@@ -1,0 +1,39 @@
+import pandas as pd
+import re
+import json
+import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+df = pd.read_csv("seizou-data.csv")
+
+def normalize(text):
+    return re.sub(r"\s+", "", str(text)).upper()
+
+df["受注No"] = df["受注No"].astype(str).apply(normalize)
+df["製品名"] = df["製品名"].astype(str).apply(normalize)
+
+@app.route("/search_order", methods=["GET"])
+def search_order():
+    keyword = request.args.get("keyword", "")
+    keyword_norm = normalize(keyword)
+
+    mask = df["受注No"].str.contains(keyword_norm) | df["製品名"].str.contains(keyword_norm)
+    result = df[mask]
+
+    if result.empty:
+        return jsonify({"result": "ごめんね、まつかりん。該当データは見つからなかったよ。"})
+
+    row = result.iloc[0]
+    output = {df.columns[i]: str(row[i]) for i in range(18)}
+    return jsonify({"result": json.dumps(output, ensure_ascii=False)})
+
+import os
+
+if __name__ == "__main__":
+app.run()
+
+
