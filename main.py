@@ -2,7 +2,7 @@ import pandas as pd
 import re
 import json
 import os
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -17,6 +17,7 @@ df["受注No"] = df["受注No"].astype(str).apply(normalize)
 df["製品名"] = df["製品名"].astype(str).apply(normalize)
 
 @app.route("/search_order", methods=["GET"])
+@app.route("/search_order/", methods=["GET"])  # ← スラッシュありにも対応
 def search_order():
     keyword = request.args.get("keyword", "")
     keyword_norm = normalize(keyword)
@@ -25,14 +26,20 @@ def search_order():
     result = df[mask]
 
     if result.empty:
-        return jsonify({"result": "ごめんね、まつかりん。該当データは見つからなかったよ。"})
+        return app.response_class(
+            response=json.dumps({"result": "ごめんね、まつかりん。該当データは見つからなかったよ。"}, ensure_ascii=False),
+            status=200,
+            mimetype="application/json"
+        )
 
     row = result.iloc[0]
     output = {df.columns[i]: str(row[i]) for i in range(18)}
 
-    response = make_response(jsonify({"result": output}))
-    response.headers["Content-Type"] = "application/json; charset=utf-8"
-    return response
+    return app.response_class(
+        response=json.dumps({"result": output}, ensure_ascii=False),
+        status=200,
+        mimetype="application/json"
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
