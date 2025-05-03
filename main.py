@@ -29,7 +29,8 @@ def search_order():
 
     row = result.iloc[0]
     output = {df.columns[i]: str(row[i]) for i in range(18)}
-    return jsonify({"result": output})
+    return jsonify(result=output)
+
 
 import os
 
